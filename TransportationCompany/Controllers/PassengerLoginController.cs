@@ -81,7 +81,7 @@ namespace TransportationCompany.Controllers
             else return NotFound(ErrorCode.ACCOUNT_NOT_FOUND);
         }
 
-        [HttpPost("Register Passenger Login")]
+        [HttpPost("RegisterPassengerLogin")]
         public async Task<ActionResult<CommonResDto>> RegisterPassengerLoginAsync(RegistrationAccountResDto pasLogin)
         {
             _logger.LogInformation("Register Passenger Login");
