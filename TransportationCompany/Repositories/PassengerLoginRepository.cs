@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Validations;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using TransportationCompany.DbContexts;
 using TransportationCompany.Enum;
 using TransportationCompany.Model;
@@ -17,6 +19,7 @@ namespace TransportationCompany.Repositories
         private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        
         public PassengerLoginRepository(ApplicationDbContext db, IMapper mapper, ILogger<PassengerRepository> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _db = db;
@@ -26,6 +29,7 @@ namespace TransportationCompany.Repositories
             _httpContextAccessor = httpContextAccessor;
         }
 
+        // Create password hash
         private void CreatePassHash(String pass, out byte[] passHash, out byte[] passSalt)
         {
             using (var hmac = new System.Security.Cryptography.HMACSHA512())
@@ -34,6 +38,8 @@ namespace TransportationCompany.Repositories
                 passHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(pass));
             }
         }
+
+        // Verify password hash
 
         private bool VerifyPassHash(String pass, String passHash, String passSalt)
         {
@@ -47,6 +53,8 @@ namespace TransportationCompany.Repositories
                 return true;
             }
         }
+
+        // Generate token
 
         private string GenerateToken(Guid Id, String Name, String Email, String Phone)
         {
@@ -70,10 +78,11 @@ namespace TransportationCompany.Repositories
             return jwt;
         }
 
+        // Login with email and password and return token if success
+
         public async Task<string> LoginWithEmailAsync(string email, string password)
         {
-            _logger.LogInformation("Login Passenger with Email");
-            
+            _logger.LogInformation("Login Passenger with Email");                        
             var query = (from r in _db.Passengers
                          join c in _db.PassengerLogins on r.Id equals c.PassengerId
                          where r.Email == email
@@ -93,6 +102,8 @@ namespace TransportationCompany.Repositories
             string token = GenerateToken(query.Id, query.Name, query.Email, query.Phone);
             return token;
         }
+
+        // Login with phone and password and return token if success
 
         public async Task<string> LoginWithPhoneAsync(string Phone, string Password)
         {
@@ -116,14 +127,41 @@ namespace TransportationCompany.Repositories
             string token = GenerateToken(query.Id, query.Name, query.Email, query.Phone);
             return token;            
         }
-        
+
+        // Check if the account is exist or not by email and phone
+
+        public async Task<bool> CheckAccountExist(string Phone, string Email)
+        {
+            _logger.LogInformation("Check Account Exist");
+            try
+            {
+                var resultEmail = await _db.Passengers.FirstOrDefaultAsync(x => x.Email == Email);
+                var resultPhone = await _db.Passengers.FirstOrDefaultAsync(x => x.Phone == Phone);
+
+                if (resultEmail != null)                
+                    return false;
+                
+                if (resultPhone != null)
+                    return false;
+
+                return true;
+            } 
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error To Check Account Exist");
+                return false;
+            }
+        }
+
+        // Register new account with RegistrationAccountResDto 
+
         public async Task<bool> RegistrationAccountAsync(RegistrationAccountResDto passenger)
         {
             _logger.LogInformation("Registration Passenger");
             try
             {
-                var result = await _db.Passengers.FirstOrDefaultAsync(x => x.Email == passenger.Email && x.Name == passenger.Name && x.Phone == passenger.Phone);
-                if (result == null)
+                var result = await CheckAccountExist(passenger.Phone, passenger.Email);
+                if (result == true)
                 {
                     _logger.LogInformation("Create Passenger");
                     Passenger pas = new Passenger(passenger.Name, passenger.Email, passenger.Phone);
@@ -136,14 +174,24 @@ namespace TransportationCompany.Repositories
                     await _db.SaveChangesAsync();
                     return true;
                 }
-                else if (result != null)
+                else if (result == false)
                 {
                     _logger.LogInformation("Create Passenger Login");
-                    CreatePassHash(passenger.Password, out byte[] passwordHash, out byte[] passwordSalt);
-                    PassengerLogin pasLogin = new PassengerLogin(result.Id, true, Convert.ToBase64String(passwordHash), Convert.ToBase64String(passwordSalt));
-                    await _db.PassengerLogins.AddAsync(pasLogin);
-                    await _db.SaveChangesAsync();
-                    return true;
+                    var findAccount = await _db.Passengers.FirstOrDefaultAsync(x => x.Email == passenger.Email || x.Phone == passenger.Phone);
+                    var findAccountLogin = await _db.PassengerLogins.FirstOrDefaultAsync(x => x.PassengerId == findAccount.Id);
+                    if (findAccountLogin.Status == false)
+                    {
+                        _logger.LogInformation("Update Passenger Login");
+                        findAccountLogin.Status = true;
+                        _db.PassengerLogins.Update(findAccountLogin);
+                        await _db.SaveChangesAsync();
+                        return true;
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Account Already Exist");
+                        return false;
+                    }
                 }                
             }
             catch (Exception ex)

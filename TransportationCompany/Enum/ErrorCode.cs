@@ -14,5 +14,6 @@
         public const string BOOKING_NOT_FOUND = "BOOKING_NOT_FOUND";
         public const string BOOKING_CANCEL_ERROR = "BOOKING_CANCEL_ERROR";
         public const string NOT_AUTHORIZED = "NOT_AUTHORIZED";
+        public const string EMAIL_INCORRECT = "EMAIL_NOT_RIGHT_IN_FORMAT";
     }
 }

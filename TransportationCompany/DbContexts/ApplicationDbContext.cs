@@ -6,9 +6,10 @@ namespace TransportationCompany.DbContexts
     public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-        {
-            
+        {            
         }
+
+        
 
         // relatetionship 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -24,8 +25,7 @@ namespace TransportationCompany.DbContexts
                 .WithMany(l => l.ToLocation)
                 .HasForeignKey(l => l.ToLocationId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
-        }
-        
+        }        
 
         // Create the DbSet properties for the entities
 

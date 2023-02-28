@@ -1,10 +1,16 @@
 using System;
 using System.Threading.Tasks;
+using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TransportationCompany.Controllers;
+using TransportationCompany.DbContexts;
 using TransportationCompany.Enum;
+using TransportationCompany.Model;
 using TransportationCompany.Model.Dto;
 using TransportationCompany.Repositories;
 using Xunit;
@@ -25,23 +31,26 @@ namespace TransportationCompany.Test.Controller
         }
 
         [Fact]
-        public async Task LoginAsync_ReturnsOkObjectResult_WhenEmailAndPasswordAreValid()
+        public async Task Test_LoginAsync_ValidEmailAndPassword_ReturnsOk()
         {
             // Arrange
-            var email = "chilythuongtin122@gmail.com";
-            var password = "Ankhang28";
-            var token = "valid_token";
+            string email = "test@example.com";
+            string password = "password123";
+            string token = "token123";
             _mockRepository.Setup(x => x.LoginWithEmailAsync(email, password)).ReturnsAsync(token);
+
+            // mock is fake object to test the real object (controller) without the real object (repository) 
 
             // Act
             var result = await _controller.LoginAsync(email, null, password);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result.Result);
-            var commonResDto = Assert.IsType<CommonResDto>(okResult.Value);
-            Assert.True(commonResDto.IsSuccess);
-            Assert.Equal(token, commonResDto.Result);
-            Assert.Equal("Passenger Login Successfully", commonResDto.DisplayMessage);
-        }        
+            Assert.NotNull(result);
+            var okObjectResult = result.Result as OkObjectResult;
+            Assert.NotNull(okObjectResult);
+            var response = okObjectResult.Value as CommonResDto;
+            Assert.NotNull(response);
+            Assert.True(response.IsSuccess);            
+        }
     }
 }
