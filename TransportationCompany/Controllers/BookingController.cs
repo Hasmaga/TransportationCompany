@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using TransportationCompany.Model;
 using TransportationCompany.Model.Dto;
 using TransportationCompany.Repositories;
+using TransportationCompany.Validation;
 
 namespace TransportationCompany.Controllers
 {
@@ -28,6 +29,12 @@ namespace TransportationCompany.Controllers
         public async Task<IActionResult> BookingTripByCustomer(BookingTripResDto book)
         {
             _logger.LogInformation("Booking Trip By Customer");
+            if (!ValidationInputController.CheckSeatIsRightFormat(book.Seat))
+            {
+                _resonse.IsSuccess = false;
+                _resonse.DisplayMessage = "Seat Invaild";
+                return BadRequest(_resonse);
+            }
             try
             {
                 var result = await _bookingRepository.BookingTripByCustomerAsync(book);
@@ -59,7 +66,7 @@ namespace TransportationCompany.Controllers
         [Route("CancelBookingByCustomer")]
         public async Task<IActionResult> CancelBookingByCustomer(Guid BookingId)
         {
-            _logger.LogInformation("Cancel Booking By Customer");
+            _logger.LogInformation("Cancel Booking By Customer");            
             try
             {
                 var result = await _bookingRepository.CancelBookingByCustomerAsync(BookingId);

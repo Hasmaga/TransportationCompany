@@ -2,6 +2,7 @@
 using TransportationCompany.Model;
 using TransportationCompany.Model.Dto;
 using TransportationCompany.Repositories;
+using TransportationCompany.Validation;
 
 namespace TransportationCompany.Controllers
 {
@@ -26,6 +27,18 @@ namespace TransportationCompany.Controllers
         public async Task<IActionResult> AddPassenger(AddPassengerResDto passenger)
         {
             _logger.LogInformation("Add Passenger");
+            if (!ValidationInputController.CheckEmailIsRightFormat(passenger.Email))
+            {
+                _resonse.IsSuccess = false;
+                _resonse.DisplayMessage = "Email Invaild";
+                return BadRequest(_resonse);
+            }
+            if (!ValidationInputController.CheckPhoneVaild(passenger.Phone))
+            {
+                _resonse.IsSuccess = false;
+                _resonse.DisplayMessage = "Phone Invaild";
+                return BadRequest(_resonse);
+            }           
             try
             {
                 var result = await _passengerRepository.AddPassengerAsync(passenger);

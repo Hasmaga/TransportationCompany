@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using TransportationCompany.Enum;
 using TransportationCompany.Model.Dto;
 using TransportationCompany.Repositories;
+using TransportationCompany.Validation;
 
 namespace TransportationCompany.Controllers
 {
@@ -36,20 +37,7 @@ namespace TransportationCompany.Controllers
             // Check Email and Phone is not null and check format input and resonse by file Json by url
             if (Email != null)
             {
-                bool CheckEmailIsRightFormat(string email)
-                {
-                    try
-                    {
-                        var emailChecker = new System.Net.Mail.MailAddress(email);
-                        return emailChecker.Address == email;
-                    } 
-                    catch
-                    {
-                        return false;
-                    }
-                }
-
-                if (!CheckEmailIsRightFormat(Email))
+                if (!ValidationInputController.CheckEmailIsRightFormat(Email))
                 {
                     _resonse.IsSuccess = false;
                     _resonse.DisplayMessage = "Email Invaild";
@@ -79,20 +67,13 @@ namespace TransportationCompany.Controllers
                 }
             }
             else if (Phone != null)
-            {
-                bool CheckPhoneVaild(string phone)
-                {
-                    string pattern = @"^0\d{9,10}$";                    
-                    return Regex.IsMatch(phone, pattern);
-                }
-                
-                if(!CheckPhoneVaild(Phone))
+            {                
+                if(!ValidationInputController.CheckPhoneVaild(Phone))
                 {
                     _resonse.IsSuccess = false;
                     _resonse.DisplayMessage = "Phone Invaild";
                     return BadRequest(_resonse);
-                }
-                
+                }                
                 try
                 {
                     string token = await _passengerLoginRepository.LoginWithPhoneAsync(Phone, Password);
@@ -126,54 +107,17 @@ namespace TransportationCompany.Controllers
         public async Task<ActionResult<CommonResDto>> RegisterPassengerLoginAsync(RegistrationAccountResDto pasLogin)
         {
             _logger.LogInformation("Register Passenger Login");           
-            
-            // Check Format email phone password input
-            
-            bool CEmialIsFormat(string email)
+            if (!ValidationInputController.CheckEmailIsRightFormat(pasLogin.Email) || !ValidationInputController.CheckPhoneVaild(pasLogin.Phone) || !ValidationInputController.IsValidPassword(pasLogin.Password))
             {
-                try
-                {
-                    var emailChecker = new System.Net.Mail.MailAddress(email);
-                    return emailChecker.Address == email;
-                }
-                catch
-                {
-                    return false;
-                }
-            }           
-
-            bool CheckPhoneVaild(string phone)
-            {
-                // Check phone is number and length is 9 or 10
-                string pattern = @"^0\d{9,10}$";
-                return Regex.IsMatch(phone, pattern);
-            }           
-
-            bool IsValidPassword(string password)
-            {
-                // Define a set of password rules
-                bool hasLength = password.Length >= 8;
-                bool hasUpperCase = password.Any(char.IsUpper);
-                bool hasLowerCase = password.Any(char.IsLower);
-                bool hasNumber = password.Any(char.IsDigit);
-                bool hasSymbol = password.Any(ch => !char.IsLetterOrDigit(ch));
-
-                // Check if the password meets all the rules
-                return hasLength && hasUpperCase && hasLowerCase && hasNumber && hasSymbol;
-            }
-            
-            if (!CEmialIsFormat(pasLogin.Email) || !CheckPhoneVaild(pasLogin.Phone) || !IsValidPassword(pasLogin.Password))
-            {
-                if (!CEmialIsFormat(pasLogin.Email))           
+                if (!ValidationInputController.CheckEmailIsRightFormat(pasLogin.Email))           
                     _resonse.DisplayMessage = "Email Invaild ";         
-                if (!CheckPhoneVaild(pasLogin.Phone))
+                if (!ValidationInputController.CheckPhoneVaild(pasLogin.Phone))
                     _resonse.DisplayMessage += "Phone Invaild ";
-                if (!IsValidPassword(pasLogin.Password))
+                if (!ValidationInputController.IsValidPassword(pasLogin.Password))
                     _resonse.DisplayMessage += "Password Invaild ";
                 _resonse.IsSuccess = false;
                 return BadRequest(_resonse);             
-            }                      
-            
+            }            
             try
             {
                 var result = await _passengerLoginRepository.RegistrationAccountAsync(pasLogin);
