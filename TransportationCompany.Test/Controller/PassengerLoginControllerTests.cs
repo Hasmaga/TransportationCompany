@@ -52,5 +52,24 @@ namespace TransportationCompany.Test.Controller
             Assert.NotNull(response);
             Assert.True(response.IsSuccess);            
         }
+
+        [Fact]
+        public async Task Test_LoginAsync_InvalidEmail_ReturnsBadRequest()
+        {
+            // Arrange
+            string email = "test@example";
+            string password = "password123";
+
+            // Act
+            var result = await _controller.LoginAsync(email, null, password);
+
+            // Assert
+            Assert.NotNull(result);
+            var badRequestObjectResult = result.Result as BadRequestObjectResult;
+            Assert.NotNull(badRequestObjectResult);
+            var response = badRequestObjectResult.Value as CommonResDto;
+            Assert.NotNull(response);
+            Assert.False(response.IsSuccess);            
+        }        
     }
 }

@@ -82,7 +82,7 @@ namespace TransportationCompany.Repositories
 
         public async Task<string> LoginWithEmailAsync(string email, string password)
         {
-            _logger.LogInformation("Login Passenger with Email");                        
+            _logger.LogInformation("Login Passenger with Email");
             var query = (from r in _db.Passengers
                          join c in _db.PassengerLogins on r.Id equals c.PassengerId
                          where r.Email == email
