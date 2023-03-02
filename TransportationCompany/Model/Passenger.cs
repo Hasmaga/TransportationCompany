@@ -15,11 +15,27 @@ namespace TransportationCompany.Model
         [Column("Phone")]
         public string Phone { get; set; }
 
-        public Passenger(string name, string email, string phone)
+        [Column("DoB")]
+        public DateTime? Dob { get; set; }
+
+        [Column("CreatedDate")]
+        public DateTime? CreatedDate { get; set; }
+
+        [Column("Address")]
+        public string? Address { get; set; }
+
+        [Column("Avatar")]
+        public string? Avatar { get; set; }
+
+        public Passenger(string name, string email, string phone, DateTime? dob, DateTime? createdDate, string? address, string? avatar)
         {
-            Name = name;            
+            Name = name;
             Email = email;
             Phone = phone;
+            Dob = dob;
+            CreatedDate = createdDate;
+            Address = address;
+            Avatar = avatar;
         }
     }
 }

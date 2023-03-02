@@ -41,7 +41,7 @@ namespace TransportationCompany.Repositories
                 {
                     throw new Exception(ErrorCode.PASSENGER_HAD_EXIST);
                 }                
-                Passenger pass = new Passenger(passenger.Name, passenger.Email, passenger.Phone);
+                Passenger pass = new Passenger(passenger.Name, passenger.Email, passenger.Phone, null, DateTime.Now, null, null);
                 await _db.Passengers.AddAsync(pass);
                 await _db.SaveChangesAsync();
                 return passenger;

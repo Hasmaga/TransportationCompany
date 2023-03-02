@@ -43,7 +43,7 @@ namespace TransportationCompany.Test.Controller
 
             // Act
             var result = await _controller.LoginAsync(email, null, password);
-
+            
             // Assert
             Assert.NotNull(result);
             var okObjectResult = result.Result as OkObjectResult;

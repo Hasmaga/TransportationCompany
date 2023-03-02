@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using System.Security.Claims;
 using TransportationCompany.DbContexts;
 using TransportationCompany.Enum;
@@ -35,27 +36,33 @@ namespace TransportationCompany.Repositories
             return Task.FromResult(Guid.Parse(result));            
         }
 
-        private async Task<Guid> GetUserId(String Name, String Email, String Phone)
+        public async Task<Passenger> GetPassengerId(string email, string phone)
         {
-            var user = _db.Passengers.FirstOrDefault(x => x.Name == Name && x.Email == Email && x.Phone == Phone);
-            if (user == null)
+            try
             {
-                Passenger passenger = new Passenger(Name, Email, Phone);
-                await _db.Passengers.AddAsync(passenger);
-                await _db.SaveChangesAsync();
-                return passenger.Id;
+                var result = await _db.Passengers.FirstOrDefaultAsync(x => x.Email == email && x.Phone == phone);
+                if (result != null)
+                    return result;
+                return null;
+                
+            } 
+            catch (Exception ex)
+            {
+                return null;
             }
-            return user.Id;
         }
-        
 
         public async Task<ActionResult<BookingTripResDto>> BookingTripByCustomerAsync(BookingTripResDto book)
         {
             _logger.LogInformation("Booking Trip By Customer");
             try
             {
-                Guid PassengerId = await GetUserId(book.Name, book.Email, book.Phone);
-                Booking booking = new Booking(PassengerId, book.TripId, book.Seat, book.BookingDate, true);
+                var pas = await GetPassengerId(book.Email, book.Phone);   
+                if (pas == null)
+                {
+                    throw new Exception(ErrorCode.ACCOUNT_NOT_FOUND);
+                }
+                Booking booking = new Booking(pas.Id, book.TripId, book.Seat, book.BookingDate, true);
                 await _db.Bookings.AddAsync(booking);
                 await _db.SaveChangesAsync();
                 return book;
@@ -72,8 +79,7 @@ namespace TransportationCompany.Repositories
             _logger.LogInformation("Cancel Booking By Customer");
             try
             {
-                Guid PassengerId = await GetPassengerLoginIdAsync();
-                
+                Guid PassengerId = await GetPassengerLoginIdAsync();                
                 var booking = await _db.Bookings.FirstOrDefaultAsync(x => x.Id == BookingId);
                 if (booking == null)
                 {

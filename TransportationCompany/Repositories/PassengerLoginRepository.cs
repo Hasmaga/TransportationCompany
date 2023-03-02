@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Validations;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -83,7 +85,7 @@ namespace TransportationCompany.Repositories
         public async Task<string> LoginWithEmailAsync(string email, string password)
         {
             _logger.LogInformation("Login Passenger with Email");
-            var query = (from r in _db.Passengers
+             var  query = (from r in _db.Passengers
                          join c in _db.PassengerLogins on r.Id equals c.PassengerId
                          where r.Email == email
                          select new
@@ -130,76 +132,97 @@ namespace TransportationCompany.Repositories
 
         // Check if the account is exist or not by email and phone
 
-        public async Task<bool> CheckAccountExist(string Phone, string Email)
+        public async Task<Passenger> CheckPassengerExist(string Phone, string Email)
         {
             _logger.LogInformation("Check Account Exist");
             try
             {
                 var resultEmail = await _db.Passengers.FirstOrDefaultAsync(x => x.Email == Email);
                 var resultPhone = await _db.Passengers.FirstOrDefaultAsync(x => x.Phone == Phone);
-
+                
                 if (resultEmail != null)                
-                    return false;
+                    return resultEmail;
                 
                 if (resultPhone != null)
-                    return false;
+                    return resultPhone;
 
-                return true;
+                return null;
             } 
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error To Check Passenger Exist");
+                return null;
+            }
+        }
+
+        public async Task<bool> CheckAccountExist(string email, string phone)
+        {
+            _logger.LogInformation("Check Account Exist");
+            try 
+            {
+                var result = (from r in _db.Passengers
+                              join c in _db.PassengerLogins on r.Id equals c.PassengerId
+                              where r.Email == email || r.Phone == phone
+                              select new
+                              {
+                                  r.Id,
+                                  r.Name,
+                                  r.Email,
+                                  r.Phone,
+                                  c.Status,
+                                  c.PasswordHash,
+                                  c.PasswordSalt
+                              }).FirstOrDefault();
+                if (result == null) return false;
+                return true;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error To Check Account Exist");
                 return false;
             }
-        }
+        }       
 
         // Register new account with RegistrationAccountResDto 
 
         public async Task<bool> RegistrationAccountAsync(RegistrationAccountResDto passenger)
         {
-            _logger.LogInformation("Registration Passenger");
+            _logger.LogInformation("Registration Passenger");      
+            if (await CheckAccountExist(passenger.Email, passenger.Phone))
+                return false;
             try
             {
-                var result = await CheckAccountExist(passenger.Phone, passenger.Email);
-                if (result == true)
+                var result = await CheckPassengerExist(passenger.Phone, passenger.Email);
+                if (result != null)
                 {
-                    _logger.LogInformation("Create Passenger");
-                    Passenger pas = new Passenger(passenger.Name, passenger.Email, passenger.Phone);
-                    await _db.Passengers.AddAsync(pas);
-                    await _db.SaveChangesAsync();
-                    _logger.LogInformation("Create Passenger Login");
-                    CreatePassHash(passenger.Password, out byte[] passwordHash, out byte[] passwordSalt);
-                    PassengerLogin pasLogin = new PassengerLogin(pas.Id, true, Convert.ToBase64String(passwordHash), Convert.ToBase64String(passwordSalt));
-                    await _db.PassengerLogins.AddAsync(pasLogin);
+                    _logger.LogInformation("Create Account For Passenger");
+                    CreatePassHash(passenger.Password, out byte[] passHash, out byte[] passSalt);
+                    PassengerLogin newAccount = new PassengerLogin(result.Id, true, Convert.ToBase64String(passHash), Convert.ToBase64String(passSalt));
+                    await _db.PassengerLogins.AddAsync(newAccount);
                     await _db.SaveChangesAsync();
                     return true;
                 }
-                else if (result == false)
+                else if (result == null)
                 {
                     _logger.LogInformation("Create Passenger Login");
-                    var findAccount = await _db.Passengers.FirstOrDefaultAsync(x => x.Email == passenger.Email || x.Phone == passenger.Phone);
-                    var findAccountLogin = await _db.PassengerLogins.FirstOrDefaultAsync(x => x.PassengerId == findAccount.Id);
-                    if (findAccountLogin.Status == false)
-                    {
-                        _logger.LogInformation("Update Passenger Login");
-                        findAccountLogin.Status = true;
-                        _db.PassengerLogins.Update(findAccountLogin);
-                        await _db.SaveChangesAsync();
-                        return true;
-                    }
-                    else
-                    {
-                        _logger.LogInformation("Account Already Exist");
-                        return false;
-                    }
-                }                
+                    Passenger newPas = new Passenger(passenger.Name, passenger.Email, passenger.Phone, null, DateTime.Now, null, null);
+                    await _db.Passengers.AddAsync(newPas);
+                    await _db.SaveChangesAsync();                    
+                    
+                    CreatePassHash(passenger.Password, out byte[] passHash, out byte[] passSalt);
+                    PassengerLogin newAccount = new PassengerLogin(newPas.Id, true, Convert.ToBase64String(passHash), Convert.ToBase64String(passSalt));                   
+                    await _db.PassengerLogins.AddAsync(newAccount);
+                    await _db.SaveChangesAsync();
+                    
+                    return true;
+                }
+                return false;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error While Registration Passenger");
                 return false;
-            }
-            return false;
+            }            
         }        
     }
 }

@@ -38,7 +38,11 @@ public class PassengerLoginRepositoryTests
         (            
             name: "John",
             email: "john@example.com",
-            phone: "1234567890"
+            phone: "1234567890",
+            dob: null,
+            createdDate: DateTime.Now,
+            address: null,
+            avatar: null
         );
         var password = "password";
         var passHash = new byte[64];
@@ -76,7 +80,11 @@ public class PassengerLoginRepositoryTests
         (
             name: "John",
             email: "john@example.com",
-            phone: "1234567890"
+            phone: "1234567890",
+            dob: null,
+            createdDate: DateTime.Now,
+            address: null, 
+            avatar: null
         );
         var password = "password";
         var passHash = new byte[64];

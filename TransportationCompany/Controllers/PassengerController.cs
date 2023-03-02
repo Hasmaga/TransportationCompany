@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TransportationCompany.Model;
 using TransportationCompany.Model.Dto;
 using TransportationCompany.Repositories;
