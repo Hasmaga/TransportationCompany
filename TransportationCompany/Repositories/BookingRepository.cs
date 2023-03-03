@@ -26,7 +26,7 @@ namespace TransportationCompany.Repositories
             _httpContextAccessor = httpContextAccessor;
         }
 
-        private Task<Guid> GetPassengerLoginIdAsync()
+        private Task<Guid> GetPassengerLoginId()
         {
             var result = string.Empty;
             if (_httpContextAccessor.HttpContext != null)
@@ -79,7 +79,7 @@ namespace TransportationCompany.Repositories
             _logger.LogInformation("Cancel Booking By Customer");
             try
             {
-                Guid PassengerId = await GetPassengerLoginIdAsync();                
+                Guid PassengerId = await GetPassengerLoginId();                
                 var booking = await _db.Bookings.FirstOrDefaultAsync(x => x.Id == BookingId);
                 if (booking == null)
                 {
@@ -99,6 +99,89 @@ namespace TransportationCompany.Repositories
                 _logger.LogError(ex, "Error while cancelling booking");
                 throw new Exception(ErrorCode.BOOKING_CANCEL_ERROR);
             }
-        }        
+        }
+
+        public async Task<List<HistoryBookingResDto>> GetHistoryBookingByPassengerAsync()
+        {
+            _logger.LogInformation("Get History Booking By Passenger");
+            Guid PassengerId = await GetPassengerLoginId();
+            if (PassengerId == null)
+            {
+                throw new Exception(ErrorCode.NOT_AUTHORIZED);
+            }
+            var result = (from r in _db.Passengers
+                          join c in _db.Bookings on r.Id equals c.PassengerId
+                          join t in _db.Trips on c.TripId equals t.Id
+                          join v in _db.RouteTrips on t.RouteTripId equals v.Id                          
+                          join y in _db.Vehicles on t.VehicleId equals y.Id
+                          join z in _db.Companies on v.CompanyId equals z.Id                          
+                          where r.Id == PassengerId && c.Status == false
+                          select new HistoryBookingResDto
+                          {
+                              Email = r.Email,
+                              Name = r.Name,
+                              Phone = r.Phone,
+                              Seat = c.Seat,
+                              BookingDate = c.BookingDate,
+                              Status = c.Status,
+                              DepartureTime = t.DepartureTime,
+                              ArrivalTime = t.ArrivalTime,
+                              Price = v.Price,
+                              From= v.From.Name,
+                              To = v.To.Name,
+                              RegistrationNumber = y.RegistrationNumber,
+                              Capacity = y.Capacity,
+                              CompanyName = z.Name,
+                              CompanyAddress = z.Address,
+                              CompanyEmail = z.Email,
+                              CompanyPhone = z.Phone
+                          }).ToListAsync();
+            if (result == null)
+            {
+                throw new Exception(ErrorCode.BOOKING_NOT_FOUND);
+            }            
+            return await result;
+        }       
+
+        public async Task<List<PresentBookingTicketResDto>> GetPresentBookingTicketByPassengerAsync()
+        {
+            _logger.LogInformation("Get Present Ticket By Passenger");
+            Guid PassengerId = await GetPassengerLoginId();
+            if (PassengerId == null)
+            {
+                throw new Exception(ErrorCode.NOT_AUTHORIZED);
+            }
+            var result = (from r in _db.Passengers
+                          join c in _db.Bookings on r.Id equals c.PassengerId
+                          join t in _db.Trips on c.TripId equals t.Id
+                          join v in _db.RouteTrips on t.RouteTripId equals v.Id
+                          join y in _db.Vehicles on t.VehicleId equals y.Id
+                          join z in _db.Companies on v.CompanyId equals z.Id
+                          where r.Id == PassengerId && c.Status == false
+                          select new PresentBookingTicketResDto
+                          {
+                              Email = r.Email,
+                              Name = r.Name,
+                              Phone = r.Phone,
+                              Seat = c.Seat,
+                              BookingDate = c.BookingDate,
+                              Status = c.Status,
+                              DepartureTime = t.DepartureTime,
+                              ArrivalTime = t.ArrivalTime,
+                              Price = v.Price,
+                              From = v.From.Name,
+                              To = v.To.Name,                              
+                              Capacity = y.Capacity,
+                              CompanyName = z.Name,
+                              CompanyAddress = z.Address,
+                              CompanyEmail = z.Email,
+                              CompanyPhone = z.Phone
+                          }).ToListAsync();
+            if (result == null)
+            {
+                throw new Exception(ErrorCode.BOOKING_NOT_FOUND);
+            }
+            return await result;
+        }
     }
 }

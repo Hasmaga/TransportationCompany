@@ -19,17 +19,13 @@ namespace TransportationCompany.Model
 
         [Column("ArrivalTime")]
         public DateTime ArrivalTime { get; set; }
-
-        [Column("Price")]
-        public decimal Price { get; set; }
-
-        public Trip(Guid vehicleId, Guid routeTripId, DateTime departureTime, DateTime arrivalTime, decimal price)
+        
+        public Trip(Guid vehicleId, Guid routeTripId, DateTime departureTime, DateTime arrivalTime)
         {
             VehicleId = vehicleId;
             RouteTripId = routeTripId;
             DepartureTime = departureTime;
-            ArrivalTime = arrivalTime;
-            Price = price;
+            ArrivalTime = arrivalTime;            
         }
     }
 }
