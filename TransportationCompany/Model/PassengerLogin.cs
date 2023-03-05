@@ -19,12 +19,17 @@ namespace TransportationCompany.Model
         [Column("PasswordSalt")]
         public string PasswordSalt { get; set; }
 
-        public PassengerLogin(Guid passengerId, bool status, string passwordHash, string passwordSalt)
+        // AdminAcc = "AdminAcc", User = "User", AdminTranCompany = "AdminTranCompany"
+        [Column("AuthType")]
+        public string AuthType { get; set; }
+
+        public PassengerLogin(Guid passengerId, bool status, string passwordHash, string passwordSalt, string authType)
         {
             PassengerId = passengerId;
             Status = status;
             PasswordHash = passwordHash;
             PasswordSalt = passwordSalt;
-        }
+            AuthType = authType;
+        }        
     }
 }

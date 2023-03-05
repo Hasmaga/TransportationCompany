@@ -41,6 +41,7 @@ namespace TransportationCompany.Repositories
             }
         }
 
+
         // Verify password hash
 
         private bool VerifyPassHash(String pass, String passHash, String passSalt)
@@ -58,14 +59,15 @@ namespace TransportationCompany.Repositories
 
         // Generate token
 
-        private string GenerateToken(Guid Id, String Name, String Email, String Phone)
+        private string GenerateToken(Guid Id, String Name, String Email, String Phone, String AuthType)
         {
             List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Sid, Id.ToString()),
                 new Claim(ClaimTypes.Name, Name),
                 new Claim(ClaimTypes.Email, Email),
-                new Claim(ClaimTypes.MobilePhone, Phone)
+                new Claim(ClaimTypes.MobilePhone, Phone),
+                new Claim(ClaimTypes.Role, AuthType)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
@@ -96,12 +98,13 @@ namespace TransportationCompany.Repositories
                              r.Phone,
                              c.Status,
                              c.PasswordHash,                             
-                             c.PasswordSalt
+                             c.PasswordSalt,
+                             c.AuthType
                          }).FirstOrDefault();
             if (query == null) throw new UnauthorizedAccessException(ErrorCode.ACCOUNT_NOT_FOUND);
             if (!VerifyPassHash(password, query.PasswordHash, query.PasswordSalt)) throw new UnauthorizedAccessException(ErrorCode.PASSWORD_INCORRECT);
             if (query.Status == false) throw new UnauthorizedAccessException(ErrorCode.PASSENGER_NOT_ACTIVE);
-            string token = GenerateToken(query.Id, query.Name, query.Email, query.Phone);
+            string token = GenerateToken(query.Id, query.Name, query.Email, query.Phone, query.AuthType);
             return token;
         }
 
@@ -121,12 +124,13 @@ namespace TransportationCompany.Repositories
                              r.Phone,
                              c.Status,
                              c.PasswordHash,
-                             c.PasswordSalt
+                             c.PasswordSalt,
+                             c.AuthType
                          }).FirstOrDefault();
             if (query == null) throw new UnauthorizedAccessException(ErrorCode.ACCOUNT_NOT_FOUND);
             if (!VerifyPassHash(Password, query.PasswordHash, query.PasswordSalt)) throw new UnauthorizedAccessException(ErrorCode.PASSWORD_INCORRECT);
             if (query.Status == false) throw new UnauthorizedAccessException(ErrorCode.PASSENGER_NOT_ACTIVE);
-            string token = GenerateToken(query.Id, query.Name, query.Email, query.Phone);
+            string token = GenerateToken(query.Id, query.Name, query.Email, query.Phone, query.AuthType);
             return token;            
         }
 
@@ -197,7 +201,7 @@ namespace TransportationCompany.Repositories
                 {
                     _logger.LogInformation("Create Account For Passenger");
                     CreatePassHash(passenger.Password, out byte[] passHash, out byte[] passSalt);
-                    PassengerLogin newAccount = new PassengerLogin(result.Id, true, Convert.ToBase64String(passHash), Convert.ToBase64String(passSalt));
+                    PassengerLogin newAccount = new PassengerLogin(result.Id, true, Convert.ToBase64String(passHash), Convert.ToBase64String(passSalt), "User");
                     await _db.PassengerLogins.AddAsync(newAccount);
                     await _db.SaveChangesAsync();
                     return true;
@@ -210,7 +214,7 @@ namespace TransportationCompany.Repositories
                     await _db.SaveChangesAsync();                    
                     
                     CreatePassHash(passenger.Password, out byte[] passHash, out byte[] passSalt);
-                    PassengerLogin newAccount = new PassengerLogin(newPas.Id, true, Convert.ToBase64String(passHash), Convert.ToBase64String(passSalt));                   
+                    PassengerLogin newAccount = new PassengerLogin(newPas.Id, true, Convert.ToBase64String(passHash), Convert.ToBase64String(passSalt), "User");                   
                     await _db.PassengerLogins.AddAsync(newAccount);
                     await _db.SaveChangesAsync();
                     

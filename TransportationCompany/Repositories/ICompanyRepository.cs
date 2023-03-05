@@ -1,6 +1,10 @@
-﻿namespace TransportationCompany.Repositories
+﻿using Microsoft.Identity.Client;
+using System.Reflection.Metadata.Ecma335;
+
+namespace TransportationCompany.Repositories
 {
-    public class ICompanyRepository
+    public interface ICompanyRepository
     {
+        
     }
 }

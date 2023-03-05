@@ -31,7 +31,7 @@ namespace TransportationCompany.Repositories
             var result = string.Empty;
             if (_httpContextAccessor.HttpContext != null)
             {
-                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
             }
             return Task.FromResult(Guid.Parse(result));            
         }

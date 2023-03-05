@@ -68,7 +68,8 @@ public class PassengerLoginRepositoryTests
             passengerId: passenger.Id,
             passwordHash: Convert.ToBase64String(passHash),
             passwordSalt: Convert.ToBase64String(passSalt),
-            status: true
+            status: true,
+            authType: "User"
         );
         // Save Fake PassengerLogin to database
         _dbContext.PassengerLogins.Add(passengerLogin);
@@ -117,7 +118,8 @@ public class PassengerLoginRepositoryTests
             passengerId: passenger.Id,
             passwordHash: Convert.ToBase64String(passHash),
             passwordSalt: Convert.ToBase64String(passSalt),
-            status: true
+            status: true,
+            authType : "User" 
         );        
         _dbContext.PassengerLogins.Add(passengerLogin);
         await _dbContext.SaveChangesAsync();

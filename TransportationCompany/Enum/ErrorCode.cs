@@ -15,5 +15,6 @@
         public const string BOOKING_CANCEL_ERROR = "BOOKING_CANCEL_ERROR";
         public const string NOT_AUTHORIZED = "NOT_AUTHORIZED";
         public const string EMAIL_INCORRECT = "EMAIL_NOT_RIGHT_IN_FORMAT";
+        public const string ADD_ACC_ERROR = "ERROR_WHILE_ADDING_ACCOUNT";
     }
 }
