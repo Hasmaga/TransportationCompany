@@ -74,7 +74,6 @@ namespace TransportationCompany.Repositories
                 return false;
                 throw new Exception(ErrorCode.ADD_ACC_ERROR);
             }
-        }
-        
+        }        
     }
 }

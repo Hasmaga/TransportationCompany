@@ -84,7 +84,7 @@ namespace TransportationCompany.Test.Controller
             // Check response of LoginAsync return object CommonResDto.IsSuccess is false or not
             var response = badRequestObjectResult.Value as CommonResDto;
             Assert.NotNull(response);
-            Assert.False(response.IsSuccess);            
-        }        
+            Assert.False(response.IsSuccess);
+        }
     }
 }
