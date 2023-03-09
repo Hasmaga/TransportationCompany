@@ -1,4 +1,5 @@
-﻿using TransportationCompany.Model.Dto;
+﻿using TransportationCompany.Model;
+using TransportationCompany.Model.Dto;
 
 namespace TransportationCompany.Repositories
 {
@@ -6,6 +7,7 @@ namespace TransportationCompany.Repositories
     {
         Task<bool> CreateNewAccountForTransportation(RegisterCompanyResDto newCom);
         Task<List<AccountLoginResDto>> GetAllAccount();
-        Task<bool> ChangeStatusAccount(Guid Id);       
+        Task<bool> ChangeStatusAccount(Guid Id);
+        Task<PassengerLogin> GetAccountLogin();
     }
 }

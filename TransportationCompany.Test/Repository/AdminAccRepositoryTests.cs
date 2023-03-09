@@ -20,8 +20,10 @@ namespace TransportationCompany.Test.Repository
         private readonly ApplicationDbContext _dbContext;
         private readonly IMapper _mapper;
         private readonly ILogger<AdminAccRepository> _logger;
+        private readonly ILogger<PassengerLoginRepository> _loggerPasLogin;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAdminAccRepository _adminAccRepository;
 
         public AdminAccRepositoryTests()
         {
@@ -31,94 +33,138 @@ namespace TransportationCompany.Test.Repository
             _dbContext = new ApplicationDbContext(options);
             _mapper = new MapperConfiguration(cfg => cfg.AddProfile(new MappingConfig())).CreateMapper();
             _logger = new Mock<ILogger<AdminAccRepository>>().Object;
+            _loggerPasLogin = new Mock<ILogger<PassengerLoginRepository>>().Object;
             _configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
             _httpContextAccessor = new Mock<IHttpContextAccessor>().Object;
+            _adminAccRepository = new Mock<IAdminAccRepository>().Object;
         }
 
-        //[Fact]
-        //public async Task CreateNewAccountForTransportation_WithValidRole_ShouldCreateNewAccount()
-        //{
-        //    // Arrange            
-        //    var adminAccRepository = new AdminAccRepository(_dbContext, _mapper, _logger, _configuration, _httpContextAccessor);
+        [Fact]
+        public async Task CreateNewAccountForTransportation_WithValidRole_ShouldCreateNewAccount()
+        {
+            // Arrange            
+            var adminAccRepository = new AdminAccRepository(_dbContext, _mapper, _logger, _configuration, _httpContextAccessor);
             
-        //    var pas = new Passenger
-        //    (
-        //        name: "Admin",
-        //        email: "Admin@example.com",
-        //        phone: "0123456789",
-        //        dob: null,
-        //        createdDate: DateTime.Now,
-        //        address: null,
-        //        avatar: null
-        //    );
-        //    await _dbContext.Passengers.AddAsync(pas);
-        //    await _dbContext.SaveChangesAsync();
+            var pas = new Passenger
+            (
+                name: "AdminAcc",
+                email: "AdminAcc@gmail.com",
+                phone: "0132323312",
+                dob: null,
+                createdDate: DateTime.Now,
+                address: null,
+                avatar: null
+            );
+            await _dbContext.Passengers.AddAsync(pas);
+            await _dbContext.SaveChangesAsync();
 
-        //    var password = "Admin1234@";            
-        //    var passHash = new byte[64];
-        //    var passSalt = new byte[128];
-        //    using (var hmac = new System.Security.Cryptography.HMACSHA512())
-        //    {
-        //        passSalt = hmac.Key;
-        //        passHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-        //    }
-        //    var pasLogin = new PassengerLogin
-        //    (
-        //        passengerId: pas.Id,
-        //        passwordHash: Convert.ToBase64String(passHash),
-        //        passwordSalt: Convert.ToBase64String(passSalt),
-        //        status: true,
-        //        authType: "AdminAcc"
-        //    );
-        //    await _dbContext.PassengerLogins.AddAsync(pasLogin);
-        //    await _dbContext.SaveChangesAsync();
+            var password = "Ankhang2!";            
+            var passHash = new byte[64];
+            var passSalt = new byte[128];
+            using (var hmac = new System.Security.Cryptography.HMACSHA512())
+            {
+                passSalt = hmac.Key;
+                passHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+            var pasLogin = new PassengerLogin
+            (
+                passengerId: pas.Id,
+                passwordHash: Convert.ToBase64String(passHash),
+                passwordSalt: Convert.ToBase64String(passSalt),
+                status: true,
+                authType: "AdminAcc"
+            );
+            await _dbContext.PassengerLogins.AddAsync(pasLogin);
+            await _dbContext.SaveChangesAsync();           
 
-        //    _httpContextAccessor.Setup(x => x.HttpContext.User.FindFirstValue(ClaimTypes.Sid)).Returns(accountId);
+            var newCom = new RegisterCompanyResDto
+            {
+                Name = "Test Company",
+                Email = "testcompany@test.com",
+                Phone = "1234567890",
+                Address = "Test Address",
+                Password = "testpassword"
+            };           
 
-        //    var newCom = new RegisterCompanyResDto
-        //    {
-        //        Name = "Test Company",
-        //        Email = "testcompany@test.com",
-        //        Phone = "1234567890",
-        //        Address = "Test Address",
-        //        Password = "testpassword"
-        //    };
-        //    var repository = new AdminAccRepository(_dbContext, _mapper, _logger, _configuration, httpContextAccessor);
+            var httpContext = new DefaultHttpContext();
+            httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.Sid, pasLogin.Id.ToString()),
+                new Claim(ClaimTypes.Role, "AdminAcc")
+            }));
 
-        //    // Act
-        //    var result = await repository.CreateNewAccountForTransportation(newCom);
+            var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };           
 
-        //    // Assert
-        //    Assert.True(result);
-        //}
+            var repositoryAdminAcc = new AdminAccRepository(_dbContext, _mapper, _logger, _configuration, httpContextAccessor);
+            // Act
+            var result = await repositoryAdminAcc.CreateNewAccountForTransportation(newCom);
 
-        //[Fact]
-        //public async Task CreateNewAccountForTransportation_WithInvalidRole_ShouldReturnFalse()
-        //{
-        //    // Arrange
-        //    var httpContext = new DefaultHttpContext();
-        //    httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
-        //    {
-        //        new Claim(ClaimTypes.Name, "TestingUser"),
-        //        new Claim(ClaimTypes.Role, "User")
-        //    }, "test"));
-        //    var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };
+            // Assert
+            Assert.True(result);
+        }
 
-        //    var newCom = new RegisterCompanyResDto
-        //    {
-        //        Name = "Test Company",
-        //        Email = "testcompany@test.com",
-        //        Phone = "1234567890",
-        //        Address = "Test Address",
-        //        Password = "testpassword"
-        //    };
-        //    var repository = new AdminAccRepository(_dbContext, _mapper, _logger, _configuration, httpContextAccessor);
+        [Fact]
+        public async Task CreateNewAccountForTransportation_WithInvalidRole_ShouldReturnFalse()
+        {
+            // Arrange            
+            var adminAccRepository = new AdminAccRepository(_dbContext, _mapper, _logger, _configuration, _httpContextAccessor);
 
-        //    // Act
-        //    var result = await repository.CreateNewAccountForTransportation(newCom);
+            var pas = new Passenger
+            (
+                name: "User",
+                email: "User@gmail.com",
+                phone: "0132313312",
+                dob: null,
+                createdDate: DateTime.Now,
+                address: null,
+                avatar: null
+            );
+            await _dbContext.Passengers.AddAsync(pas);
+            await _dbContext.SaveChangesAsync();
 
-        //    // Assert
-        //    Assert.False(result);
-        //}
+            var password = "Ankhang2!";
+            var passHash = new byte[64];
+            var passSalt = new byte[128];
+            using (var hmac = new System.Security.Cryptography.HMACSHA512())
+            {
+                passSalt = hmac.Key;
+                passHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+            var pasLogin = new PassengerLogin
+            (
+                passengerId: pas.Id,
+                passwordHash: Convert.ToBase64String(passHash),
+                passwordSalt: Convert.ToBase64String(passSalt),
+                status: true,
+                authType: "User"
+            );
+            await _dbContext.PassengerLogins.AddAsync(pasLogin);
+            await _dbContext.SaveChangesAsync();
+
+            var newCom = new RegisterCompanyResDto
+            {
+                Name = "Test Company",
+                Email = "testcompany@test.com",
+                Phone = "1234567890",
+                Address = "Test Address",
+                Password = "testpassword"
+            };
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.Sid, pasLogin.Id.ToString()),
+                new Claim(ClaimTypes.Role, "AdminAcc")
+            }));
+
+            var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };
+
+            var repositoryAdminAcc = new AdminAccRepository(_dbContext, _mapper, _logger, _configuration, httpContextAccessor);
+            // Act
+            var result = await repositoryAdminAcc.CreateNewAccountForTransportation(newCom);
+
+            // Assert
+            Assert.False(result);
+        }
     }
 }

@@ -32,14 +32,14 @@ namespace TransportationCompany.Repositories
                 passHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(pass));
             }
         }
-
-        private async Task<PassengerLogin> GetAccountLogin()
+        
+        public async Task<PassengerLogin> GetAccountLogin()
         {
-            var result = string.Empty;
-            if (_httpContextAccessor.HttpContext != null)
+            if (_httpContextAccessor.HttpContext == null)
             {
-                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Sid);
+                throw new Exception(ErrorCode.NOT_AUTHORIZED);
             }
+            var result = Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Sid));
             var acc = await _db.PassengerLogins.FindAsync(result);
             if (acc == null)
             {
