@@ -138,7 +138,7 @@ namespace TransportationCompany.Test.Repository
         }
 
         [Fact]
-        public async Task LoginWithPhoneAsync_WhenCalledWithInvalidCredentials_ReturnsBadRequest()
+        public async Task LoginWithPhoneAsync_WhenCalledWithInvalidCredentials_ThrowExpection()
         {
             // Arrange
             var passenger = new Passenger

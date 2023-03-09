@@ -62,5 +62,67 @@ namespace TransportationCompany.Controllers
             }
             return Ok(_resonse);
         }
+
+        [HttpGet, Authorize]
+        [Route("GetAllAccountInDatabase")]
+        public async Task<ActionResult<CommonResDto>> GetAllAccountInDatabaseAsync()
+        {
+            _logger.LogInformation("Get All Account In Database");
+            try
+            {
+                var result = await _repo.GetAllAccount();
+                if (result != null)
+                {
+                    _resonse.IsSuccess = true;
+                    _resonse.Result = result;
+                    _resonse.DisplayMessage = "Get All Account In Database Successfully";
+                }
+                else
+                {
+                    _resonse.IsSuccess = false;
+                    _resonse.DisplayMessage = "Get All Account In Database Failed";
+                    return BadRequest(_resonse);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Get All Account In Database Failed");
+                _resonse.IsSuccess = false;
+                _resonse.DisplayMessage = "Get All Account In Database Failed";
+                return BadRequest(_resonse);
+            }
+            return Ok(_resonse);
+        }
+
+        [HttpPatch, Authorize]
+        [Route("UpdateAccountStatus")]
+        public async Task<ActionResult<CommonResDto>> UpdateAccountStatusAsync(Guid Id)
+        {
+            _logger.LogInformation("Update Account Status");
+            try
+            {
+                var result = await _repo.ChangeStatusAccount(Id);
+                if (result == true)
+                {
+                    _resonse.IsSuccess = true;
+                    _resonse.Result = result;
+                    _resonse.DisplayMessage = "Update Account Status Successfully";
+                }
+                else
+                {
+                    _resonse.IsSuccess = false;
+                    _resonse.DisplayMessage = "Update Account Status Failed";
+                    return BadRequest(_resonse);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Update Account Status Failed");
+                _resonse.IsSuccess = false;
+                _resonse.DisplayMessage = "Update Account Status Failed";
+                return BadRequest(_resonse);
+            }
+            return Ok(_resonse);
+        }
     }
 }

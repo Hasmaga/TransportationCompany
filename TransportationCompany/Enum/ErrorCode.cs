@@ -16,5 +16,7 @@
         public const string NOT_AUTHORIZED = "NOT_AUTHORIZED";
         public const string EMAIL_INCORRECT = "EMAIL_NOT_RIGHT_IN_FORMAT";
         public const string ADD_ACC_ERROR = "ERROR_WHILE_ADDING_ACCOUNT";
+        public const string GET_ALL_ACC_ERROR = "GET_ALL_ACC_ERROR";
+        public const string CHANGE_STATUS_ACC_ERROR = "CHANGE_STATUS_ACC_ERROR";
     }
 }

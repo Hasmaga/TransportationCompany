@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TransportationCompany.DbContexts;
 using TransportationCompany.Enum;
@@ -48,8 +49,7 @@ namespace TransportationCompany.Repositories
             string role = await GetAccountRole();
             if (role != "AdminAcc")
             {
-                return false;
-                throw new Exception(ErrorCode.NOT_AUTHORIZED);
+                return false;                
             }
             try
             {
@@ -75,5 +75,63 @@ namespace TransportationCompany.Repositories
                 throw new Exception(ErrorCode.ADD_ACC_ERROR);
             }
         }        
+
+        public async Task<List<AccountLoginResDto>> GetAllAccount()
+        {
+            _logger.LogInformation("Get All Account");
+            string role = await GetAccountRole();
+            if (role != "AdminAcc")
+            {
+                throw new UnauthorizedAccessException(ErrorCode.NOT_AUTHORIZED);
+            }
+            try
+            {
+                var query = (from r in _db.Passengers
+                             join l in _db.PassengerLogins on r.Id equals l.PassengerId
+                             select new AccountLoginResDto
+                             {
+                                 Id = l.Id,
+                                 Name = r.Name,
+                                 Email = r.Email,
+                                 Phone = r.Phone,
+                                 Status = l.Status, 
+                                 CreatedDate = r.CreatedDate,
+                                 Address = r.Address,
+                                 Avatar = r.Avatar,
+                                 AuthType = l.AuthType
+                             }).ToListAsync();
+                return await query;
+            }
+            catch (Exception ex)
+            {
+                return null;
+                throw new Exception(ErrorCode.GET_ALL_ACC_ERROR);
+            }
+        }
+        
+        public async Task<bool> ChangeStatusAccount(Guid Id)
+        {
+            _logger.LogInformation("Change Status Account");
+            string role = await GetAccountRole();
+            if (role != "AdminAcc")
+                throw new UnauthorizedAccessException(ErrorCode.NOT_AUTHORIZED);
+            try
+            {
+                var Account = await _db.PassengerLogins.FirstOrDefaultAsync(p => p.Id == Id);
+                if (Account.Status == true)
+                    Account.Status = false;
+                else
+                    Account.Status = true;
+                _db.PassengerLogins.Update(Account);
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+                throw new Exception(ErrorCode.CHANGE_STATUS_ACC_ERROR);
+            }
+        }
+        
     }
 }

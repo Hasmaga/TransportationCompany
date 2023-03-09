@@ -227,6 +227,49 @@ namespace TransportationCompany.Repositories
                 _logger.LogError(ex, "Error While Registration Passenger");
                 return false;
             }            
-        }        
+        }
+
+        private Task<Guid> GetGuidUser()
+        {
+            _logger.LogInformation("Get Guid User");
+            var result = string.Empty;
+            if (_httpContextAccessor.HttpContext != null)
+                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Sid);
+            return Task.FromResult(Guid.Parse(result));
+        }
+        
+        public async Task<bool> UpdatePassengerAsync(PassengerInfoUpdateResDto passenger)
+        {
+            _logger.LogInformation("Update Passenger");
+            var guidUser = GetGuidUser();
+            if (guidUser == null)
+            {
+                throw new UnauthorizedAccessException(ErrorCode.NOT_AUTHORIZED);
+            }
+            try
+            {
+                var result = await _db.Passengers.FirstOrDefaultAsync(x => x.Id == guidUser.Result);
+                if (result == null)
+                    throw new Exception(ErrorCode.ACCOUNT_NOT_FOUND);
+                
+                if (passenger.Name != null)
+                    result.Name = passenger.Name;
+                if (passenger.Address != null)
+                    result.Address = passenger.Address;
+                if (passenger.Dob != null)
+                    result.Dob = passenger.Dob;
+                if (passenger.Email != null)
+                    result.Email = passenger.Email;
+
+                _db.Passengers.Update(result);
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error While Update Passenger");
+                return false;
+            }
+        }
     }
 }
