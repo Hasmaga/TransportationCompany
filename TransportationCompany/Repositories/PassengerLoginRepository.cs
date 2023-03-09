@@ -63,8 +63,7 @@ namespace TransportationCompany.Repositories
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Sid, Id.ToString()), 
-                new Claim(ClaimTypes.Role, AuthType)
+                new Claim(ClaimTypes.Sid, Id.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
