@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client;
 using Moq;
 using System.Security.Claims;
 using TransportationCompany.Config;
 using TransportationCompany.DbContexts;
+using TransportationCompany.Model;
 using TransportationCompany.Model.Dto;
 using TransportationCompany.Repositories;
 using Xunit;
@@ -36,14 +38,42 @@ namespace TransportationCompany.Test.Repository
         [Fact]
         public async Task CreateNewAccountForTransportation_WithValidRole_ShouldCreateNewAccount()
         {
-            // Arrange
-            var httpContext = new DefaultHttpContext();
-            httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            // Arrange            
+            var adminAccRepository = new AdminAccRepository(_dbContext, _mapper, _logger, _configuration, _httpContextAccessor);
+            
+            var pas = new Passenger
+            (
+                name: "Admin",
+                email: "Admin@example.com",
+                phone: "0123456789",
+                dob: null,
+                createdDate: DateTime.Now,
+                address: null,
+                avatar: null
+            );
+            await _dbContext.Passengers.AddAsync(pas);
+            await _dbContext.SaveChangesAsync();
+
+            var password = "Admin1234@";            
+            var passHash = new byte[64];
+            var passSalt = new byte[128];
+            using (var hmac = new System.Security.Cryptography.HMACSHA512())
             {
-                new Claim(ClaimTypes.Name, "AdminAccount"),
-                new Claim(ClaimTypes.Role, "AdminAcc")
-            }, "test"));
-            var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };
+                passSalt = hmac.Key;
+                passHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            }
+            var pasLogin = new PassengerLogin
+            (
+                passengerId: pas.Id,
+                passwordHash: Convert.ToBase64String(passHash),
+                passwordSalt: Convert.ToBase64String(passSalt),
+                status: true,
+                authType: "AdminAcc"
+            );
+            await _dbContext.PassengerLogins.AddAsync(pasLogin);
+            await _dbContext.SaveChangesAsync();
+
+            _httpContextAccessor.Setup(x => x.HttpContext.User.FindFirstValue(ClaimTypes.Sid)).Returns(accountId);
 
             var newCom = new RegisterCompanyResDto
             {

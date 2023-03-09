@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using System.Security.Claims;
 using TransportationCompany.DbContexts;
+using TransportationCompany.Enum;
 using TransportationCompany.Model;
 
 namespace TransportationCompany.Repositories
@@ -21,14 +22,19 @@ namespace TransportationCompany.Repositories
             _httpContextAccessor = httpContextAccessor;
         }
 
-        private Task<Guid> GetAccountLoginId()
+        private async Task<PassengerLogin> GetAccountLogin()
         {
             var result = string.Empty;
             if (_httpContextAccessor.HttpContext != null)
             {
-                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
+                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Sid);
             }
-            return Task.FromResult(Guid.Parse(result));
+            var acc = await _db.PassengerLogins.FindAsync(result);
+            if (acc == null)
+            {
+                throw new Exception(ErrorCode.NOT_AUTHORIZED);
+            }
+            return acc;
         }       
     }
 }
