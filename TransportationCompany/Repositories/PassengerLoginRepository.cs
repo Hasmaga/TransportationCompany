@@ -268,5 +268,10 @@ namespace TransportationCompany.Repositories
                 return false;
             }
         }
+
+        public Task<bool> UpdatePassengerInfoAsync(PassengerInfoUpdateResDto passenger)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

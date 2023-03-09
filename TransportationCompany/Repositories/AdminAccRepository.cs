@@ -84,8 +84,8 @@ namespace TransportationCompany.Repositories
         public async Task<List<AccountLoginResDto>> GetAllAccount()
         {
             _logger.LogInformation("Get All Account");
-            string role = await GetAccountRole();
-            if (role != "AdminAcc")
+            var acc = await GetAccountLogin();
+            if (acc.AuthType != "AdminAcc")
             {
                 throw new UnauthorizedAccessException(ErrorCode.NOT_AUTHORIZED);
             }
@@ -117,8 +117,8 @@ namespace TransportationCompany.Repositories
         public async Task<bool> ChangeStatusAccount(Guid Id)
         {
             _logger.LogInformation("Change Status Account");
-            string role = await GetAccountRole();
-            if (role != "AdminAcc")
+            var acc = await GetAccountLogin();
+            if (acc.AuthType != "AdminAcc")
                 throw new UnauthorizedAccessException(ErrorCode.NOT_AUTHORIZED);
             try
             {
