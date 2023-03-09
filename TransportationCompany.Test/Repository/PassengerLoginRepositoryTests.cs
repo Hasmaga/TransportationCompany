@@ -20,7 +20,7 @@ namespace TransportationCompany.Test.Repository
         // Line 16 to 33 : Create Fake database to test logic of repository 
         private readonly ApplicationDbContext _dbContext;
         private readonly IMapper _mapper;
-        private readonly ILogger<PassengerRepository> _logger;
+        private readonly ILogger<PassengerLoginRepository> _logger;
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -32,7 +32,7 @@ namespace TransportationCompany.Test.Repository
                 .Options;
             _dbContext = new ApplicationDbContext(options);
             _mapper = new MapperConfiguration(cfg => cfg.AddProfile(new MappingConfig())).CreateMapper();
-            _logger = new Mock<ILogger<PassengerRepository>>().Object;
+            _logger = new Mock<ILogger<PassengerLoginRepository>>().Object;
             _configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
             _httpContextAccessor = new Mock<IHttpContextAccessor>().Object;
         }

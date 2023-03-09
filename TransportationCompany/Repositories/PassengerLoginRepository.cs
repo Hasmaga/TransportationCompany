@@ -22,7 +22,7 @@ namespace TransportationCompany.Repositories
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         
-        public PassengerLoginRepository(ApplicationDbContext db, IMapper mapper, ILogger<PassengerRepository> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+        public PassengerLoginRepository(ApplicationDbContext db, IMapper mapper, ILogger<PassengerLoginRepository> logger, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
         {
             _db = db;
             _mapper = mapper;
@@ -59,14 +59,11 @@ namespace TransportationCompany.Repositories
 
         // Generate token
 
-        private string GenerateToken(Guid Id, String Name, String Email, String Phone, String AuthType)
+        private string GenerateToken(Guid Id, string AuthType)
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Sid, Id.ToString()),
-                new Claim(ClaimTypes.Name, Name),
-                new Claim(ClaimTypes.Email, Email),
-                new Claim(ClaimTypes.MobilePhone, Phone),
+                new Claim(ClaimTypes.Sid, Id.ToString()), 
                 new Claim(ClaimTypes.Role, AuthType)
             };
 
@@ -104,7 +101,7 @@ namespace TransportationCompany.Repositories
             if (query == null) throw new UnauthorizedAccessException(ErrorCode.ACCOUNT_NOT_FOUND);
             if (!VerifyPassHash(password, query.PasswordHash, query.PasswordSalt)) throw new UnauthorizedAccessException(ErrorCode.PASSWORD_INCORRECT);
             if (query.Status == false) throw new UnauthorizedAccessException(ErrorCode.PASSENGER_NOT_ACTIVE);
-            string token = GenerateToken(query.Id, query.Name, query.Email, query.Phone, query.AuthType);
+            string token = GenerateToken(query.Id, query.AuthType);
             return token;
         }
 
@@ -130,7 +127,7 @@ namespace TransportationCompany.Repositories
             if (query == null) throw new UnauthorizedAccessException(ErrorCode.ACCOUNT_NOT_FOUND);
             if (!VerifyPassHash(Password, query.PasswordHash, query.PasswordSalt)) throw new UnauthorizedAccessException(ErrorCode.PASSWORD_INCORRECT);
             if (query.Status == false) throw new UnauthorizedAccessException(ErrorCode.PASSENGER_NOT_ACTIVE);
-            string token = GenerateToken(query.Id, query.Name, query.Email, query.Phone, query.AuthType);
+            string token = GenerateToken(query.Id, query.AuthType);
             return token;            
         }
 

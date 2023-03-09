@@ -26,14 +26,19 @@ namespace TransportationCompany.Repositories
             _httpContextAccessor = httpContextAccessor;
         }
 
-        private Task<Guid> GetPassengerLoginId()
+        private async Task<PassengerLogin> GetAccountLogin()
         {
             var result = string.Empty;
             if (_httpContextAccessor.HttpContext != null)
             {
-                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
+                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Sid);
             }
-            return Task.FromResult(Guid.Parse(result));            
+            var acc = await _db.PassengerLogins.FindAsync(result);
+            if (acc == null)
+            {
+                throw new Exception(ErrorCode.NOT_AUTHORIZED);
+            }
+            return acc;
         }
 
         public async Task<Passenger> GetPassengerId(string email, string phone)
@@ -79,13 +84,13 @@ namespace TransportationCompany.Repositories
             _logger.LogInformation("Cancel Booking By Customer");
             try
             {
-                Guid PassengerId = await GetPassengerLoginId();                
+                var pas = await GetAccountLogin();               
                 var booking = await _db.Bookings.FirstOrDefaultAsync(x => x.Id == BookingId);
                 if (booking == null)
                 {
                     throw new Exception(ErrorCode.BOOKING_NOT_FOUND);
                 }
-                if (booking.PassengerId != PassengerId)
+                if (booking.PassengerId != pas.PassengerId)
                 {
                     throw new Exception(ErrorCode.NOT_AUTHORIZED);
                 }
@@ -104,8 +109,8 @@ namespace TransportationCompany.Repositories
         public async Task<List<HistoryBookingResDto>> GetHistoryBookingByPassengerAsync()
         {
             _logger.LogInformation("Get History Booking By Passenger");
-            Guid PassengerId = await GetPassengerLoginId();
-            if (PassengerId == null)
+            var pas = await GetAccountLogin();
+            if (pas.PassengerId == null)
             {
                 throw new Exception(ErrorCode.NOT_AUTHORIZED);
             }
@@ -115,7 +120,7 @@ namespace TransportationCompany.Repositories
                           join v in _db.RouteTrips on t.RouteTripId equals v.Id                          
                           join y in _db.Vehicles on t.VehicleId equals y.Id
                           join z in _db.Companies on v.CompanyId equals z.Id                          
-                          where r.Id == PassengerId && c.Status == false
+                          where r.Id == pas.PassengerId && c.Status == false
                           select new HistoryBookingResDto
                           {
                               Email = r.Email,
@@ -146,8 +151,8 @@ namespace TransportationCompany.Repositories
         public async Task<List<PresentBookingTicketResDto>> GetPresentBookingTicketByPassengerAsync()
         {
             _logger.LogInformation("Get Present Ticket By Passenger");
-            Guid PassengerId = await GetPassengerLoginId();
-            if (PassengerId == null)
+            var pas = await GetAccountLogin();
+            if (pas.PassengerId == null)
             {
                 throw new Exception(ErrorCode.NOT_AUTHORIZED);
             }
@@ -157,7 +162,7 @@ namespace TransportationCompany.Repositories
                           join v in _db.RouteTrips on t.RouteTripId equals v.Id
                           join y in _db.Vehicles on t.VehicleId equals y.Id
                           join z in _db.Companies on v.CompanyId equals z.Id
-                          where r.Id == PassengerId && c.Status == false
+                          where r.Id == pas.PassengerId && c.Status == false
                           select new PresentBookingTicketResDto
                           {
                               Email = r.Email,

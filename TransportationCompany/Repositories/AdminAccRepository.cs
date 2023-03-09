@@ -32,21 +32,26 @@ namespace TransportationCompany.Repositories
             }
         }
 
-        private Task<string> GetAccountRole()
+        private async Task<PassengerLogin> GetAccountLogin()
         {
             var result = string.Empty;
             if (_httpContextAccessor.HttpContext != null)
             {
-                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role);
+                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Sid);
             }
-            return Task.FromResult(result);
+            var acc = await _db.PassengerLogins.FindAsync(result);
+            if (acc == null)
+            {
+                throw new Exception(ErrorCode.NOT_AUTHORIZED);
+            }
+            return acc;
         }
 
         public async Task<bool> CreateNewAccountForTransportation(RegisterCompanyResDto newCom)
         {
             _logger.LogInformation("Create New Account For Transportation");
-            string role = await GetAccountRole();
-            if (role != "AdminAcc")
+            var pas = await GetAccountLogin();
+            if (pas.AuthType != "AdminAcc")
             {
                 return false;
                 throw new Exception(ErrorCode.NOT_AUTHORIZED);
