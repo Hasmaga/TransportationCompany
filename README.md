@@ -2,6 +2,6 @@
 
 # TransportationCompany
 
-## Wellcome to my personal project
+## Wellcome to project
 
 This project is about transportation API(Back-end)
