@@ -3,6 +3,7 @@ using System.Security.Claims;
 using TransportationCompany.DbContexts;
 using TransportationCompany.Enum;
 using TransportationCompany.Model;
+using TransportationCompany.Model.Dto;
 
 namespace TransportationCompany.Repositories
 {
@@ -35,6 +36,26 @@ namespace TransportationCompany.Repositories
                 throw new Exception(ErrorCode.NOT_AUTHORIZED);
             }
             return acc;
-        }       
+        }        
+
+        //public async Task<bool> CreateNewCompanyTripAsync(CreateNewCompanyTripResDto newTrip)
+        //{
+        //    var acc = await GetAccountLogin();
+        //    if (acc.AuthType != "AdminCompany")
+        //    {
+        //        throw new Exception(ErrorCode.NOT_AUTHORIZED);
+        //    }
+        //    var findCompany
+        //}
+
+        public Task<bool> CreateVehicleForCompanyAsync(CreateVehicleForCompanyResDto vehicle)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> CreateNewCompanyTripAsync(CreateCompanyTripResDto newTrip)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

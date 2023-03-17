@@ -19,11 +19,9 @@ namespace TransportationCompany.Test.Repository
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IMapper _mapper;
-        private readonly ILogger<AdminAccRepository> _logger;
-        private readonly ILogger<PassengerLoginRepository> _loggerPasLogin;
+        private readonly ILogger<AdminAccRepository> _logger;        
         private readonly IConfiguration _configuration;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IAdminAccRepository _adminAccRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;        
 
         public AdminAccRepositoryTests()
         {
@@ -32,11 +30,9 @@ namespace TransportationCompany.Test.Repository
                 .Options;
             _dbContext = new ApplicationDbContext(options);
             _mapper = new MapperConfiguration(cfg => cfg.AddProfile(new MappingConfig())).CreateMapper();
-            _logger = new Mock<ILogger<AdminAccRepository>>().Object;
-            _loggerPasLogin = new Mock<ILogger<PassengerLoginRepository>>().Object;
+            _logger = new Mock<ILogger<AdminAccRepository>>().Object;            
             _configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-            _httpContextAccessor = new Mock<IHttpContextAccessor>().Object;
-            _adminAccRepository = new Mock<IAdminAccRepository>().Object;
+            _httpContextAccessor = new Mock<IHttpContextAccessor>().Object;            
         }
 
         [Fact]
@@ -89,8 +85,7 @@ namespace TransportationCompany.Test.Repository
             var httpContext = new DefaultHttpContext();
             httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
             {
-                new Claim(ClaimTypes.Sid, pasLogin.Id.ToString()),
-                new Claim(ClaimTypes.Role, "AdminAcc")
+                new Claim(ClaimTypes.Sid, pasLogin.Id.ToString())                
             }));
 
             var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };           
@@ -153,8 +148,7 @@ namespace TransportationCompany.Test.Repository
             var httpContext = new DefaultHttpContext();
             httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
             {
-                new Claim(ClaimTypes.Sid, pasLogin.Id.ToString()),
-                new Claim(ClaimTypes.Role, "AdminAcc")
+                new Claim(ClaimTypes.Sid, pasLogin.Id.ToString())                
             }));
 
             var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };

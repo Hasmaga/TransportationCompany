@@ -8,7 +8,7 @@ namespace TransportationCompany.Repositories
     {
         Task<ActionResult<BookingTripResDto>> BookingTripByCustomerAsync(BookingTripResDto book);
         Task<bool> CancelBookingByCustomerAsync(Guid BookingId);
-        Task<List<HistoryBookingResDto>> GetHistoryBookingByPassengerAsync();
-        Task<List<PresentBookingTicketResDto>> GetPresentBookingTicketByPassengerAsync();
+        //Task<List<HistoryBookingResDto>> GetHistoryBookingByPassengerAsync();
+        //Task<List<PresentBookingTicketResDto>> GetPresentBookingTicketByPassengerAsync();
     }
 }

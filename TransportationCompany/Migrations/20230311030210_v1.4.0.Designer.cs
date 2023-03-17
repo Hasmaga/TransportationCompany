@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TransportationCompany.DbContexts;
 
@@ -11,9 +12,11 @@ using TransportationCompany.DbContexts;
 namespace TransportationCompany.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230311030210_v1.4.0")]
+    partial class v140
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -289,9 +292,14 @@ namespace TransportationCompany.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("RegistrationNumber");
 
+                    b.Property<Guid>("RouteTripId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("RouteTripId");
 
                     b.ToTable("Vehicle", "dbo");
                 });
@@ -389,7 +397,15 @@ namespace TransportationCompany.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TransportationCompany.Model.RouteTrip", "RouteTrip")
+                        .WithMany()
+                        .HasForeignKey("RouteTripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Company");
+
+                    b.Navigation("RouteTrip");
                 });
 
             modelBuilder.Entity("TransportationCompany.Model.Location", b =>

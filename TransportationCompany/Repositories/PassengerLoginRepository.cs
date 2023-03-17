@@ -1,12 +1,8 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Validations;
-using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text;
-using System.Text.RegularExpressions;
 using TransportationCompany.DbContexts;
 using TransportationCompany.Enum;
 using TransportationCompany.Model;
@@ -225,26 +221,29 @@ namespace TransportationCompany.Repositories
             }            
         }
 
-        private Task<Guid> GetGuidUser()
+        public async Task<PassengerLogin> GetAccountLogin()
         {
-            _logger.LogInformation("Get Guid User");
-            var result = string.Empty;
-            if (_httpContextAccessor.HttpContext != null)
-                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Sid);
-            return Task.FromResult(Guid.Parse(result));
+            if (_httpContextAccessor.HttpContext == null)
+            {
+                throw new Exception(ErrorCode.NOT_AUTHORIZED);
+            }
+            var result = Guid.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Sid));
+            var acc = await _db.PassengerLogins.FindAsync(result);
+            if (acc == null)
+            {
+                throw new Exception(ErrorCode.NOT_AUTHORIZED);
+            }
+            return acc;
         }
-        
-        public async Task<bool> UpdatePassengerAsync(PassengerInfoUpdateResDto passenger)
+
+        public async Task<bool> UpdatePassengerInfoAsync(PassengerInfoUpdateResDto passenger)
         {
             _logger.LogInformation("Update Passenger");
-            var guidUser = GetGuidUser();
-            if (guidUser == null)
-            {
-                throw new UnauthorizedAccessException(ErrorCode.NOT_AUTHORIZED);
-            }
+            var acc = await GetAccountLogin();            
             try
             {
-                var result = await _db.Passengers.FirstOrDefaultAsync(x => x.Id == guidUser.Result);
+                var result = await _db.Passengers.FirstOrDefaultAsync(x => x.Id == acc.PassengerId);
+
                 if (result == null)
                     throw new Exception(ErrorCode.ACCOUNT_NOT_FOUND);
                 
@@ -266,11 +265,6 @@ namespace TransportationCompany.Repositories
                 _logger.LogError(ex, "Error While Update Passenger");
                 return false;
             }
-        }
-
-        public Task<bool> UpdatePassengerInfoAsync(PassengerInfoUpdateResDto passenger)
-        {
-            throw new NotImplementedException();
         }
     }
 }

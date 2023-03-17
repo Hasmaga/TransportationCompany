@@ -12,20 +12,29 @@ namespace TransportationCompany.Model
 
         [Column("RouteTripId")]
         public Guid RouteTripId { get; set; }
-        public RouteTrip RouteTrip { get; set; }
+        public RouteTrip RouteTrip { get; set; }       
         
+        [Column("Price")]
+        public decimal Price { get; set; }
+
         [Column("DepartureTime")]
         public DateTime DepartureTime { get; set; }
 
         [Column("ArrivalTime")]
         public DateTime ArrivalTime { get; set; }
-        
-        public Trip(Guid vehicleId, Guid routeTripId, DateTime departureTime, DateTime arrivalTime)
+
+        [ForeignKey("Company")]
+        public Guid CompanyId { get; set; }
+        public virtual Company Company { get; set; }
+
+        public Trip(Guid vehicleId, Guid routeTripId, decimal price, DateTime departureTime, DateTime arrivalTime, Guid companyId)
         {
             VehicleId = vehicleId;
             RouteTripId = routeTripId;
+            Price = price;
             DepartureTime = departureTime;
-            ArrivalTime = arrivalTime;            
+            ArrivalTime = arrivalTime;
+            CompanyId = companyId;
         }
     }
 }

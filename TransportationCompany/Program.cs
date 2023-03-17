@@ -19,6 +19,7 @@ builder.Services.AddScoped<IPassengerRepository, PassengerRepository>();
 builder.Services.AddScoped<IPassengerLoginRepository, PassengerLoginRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IAdminAccRepository, AdminAccRepository>();
+builder.Services.AddScoped<IAdminTranRepository, AdminTranRepository>();
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 

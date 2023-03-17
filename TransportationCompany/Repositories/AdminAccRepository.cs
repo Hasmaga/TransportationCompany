@@ -66,9 +66,9 @@ namespace TransportationCompany.Repositories
 
                 PassengerLogin newAccTran = new PassengerLogin(newCompany.Id, true, Convert.ToBase64String(passHash), Convert.ToBase64String(passSalt), "AdminCompany");
                 await _db.PassengerLogins.AddAsync(newAccTran);
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync();                
 
-                Company newCompanyInfo = new Company(newCom.Name, newCom.Address, newCom.Email, newCom.Phone);
+                Company newCompanyInfo = new Company(newCompany.Id, newCom.Name, newCom.Address, newCom.Email, newCom.Phone);
                 await _db.Companies.AddAsync(newCompanyInfo);
                 await _db.SaveChangesAsync();
 
@@ -136,7 +136,6 @@ namespace TransportationCompany.Repositories
                 return false;
                 throw new Exception(ErrorCode.CHANGE_STATUS_ACC_ERROR);
             }
-        }
-        
+        }        
     }
 }
